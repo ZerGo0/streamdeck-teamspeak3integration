@@ -1,0 +1,71 @@
+{
+  "Actions": [
+    {
+      "Icon": "Images/Microphone",
+      "Name": "TeamSpeak 3 Toggle INPUT Mute",
+      "States": [
+        {
+          "Image": "Images/Microphone",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nMic Mute",
+          "Name": "INPUT On"
+        },
+        {
+          "Image": "Images/MicrophoneMute",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nMic Mute",
+          "Name": "INPUT Off"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggles the INPUT mute status on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.toggleInputMute",
+      "PropertyInspectorPath": "PropertyInspector/ToggleInputMute/ToggleInputMute.html"
+    },
+    {
+      "Icon": "Images/Sound",
+      "Name": "TeamSpeak 3 Toggle OUTPUT Mute",
+      "States": [
+        {
+          "Image": "Images/Sound",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nSound Mute",
+          "Name": "OUTPUT On"
+        },
+        {
+          "Image": "Images/SoundMute",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nSound Mute",
+          "Name": "OUTPUT Off"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggles the OUTPUT mute status on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.toggleOutputMute",
+      "PropertyInspectorPath": "PropertyInspector/ToggleOutputMute/ToggleOutputMute.html"
+    }
+  ],
+  "Author": "ZerGo0",
+  "Description": "Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) with your Stream Deck",
+  "Name": "TeamSpeak 3 Integration",
+  "Icon": "Images/pluginIcon",
+  "URL": "https://github.com/ZerGo0",
+  "Version": "1.0",
+  "CodePath": "com.zergo0.teamspeak3integration",
+  "Category": "ZerGo0's Plugins",
+  "CategoryIcon": "Images/categoryIcon",
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "4.3"
+  }
+}
