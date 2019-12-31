@@ -6,7 +6,7 @@ Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) 
 You need to have the [ClientQuery plugin](https://www.myteamspeak.com/addons/943dd816-7ef2-48d7-82b8-d60c3b9b10b3) installed in your TeamSpeak 3 Client in order to use this plugin.
 
 ## Changelog
-v1.0:
+[v1.0](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.0):
 - Added 2 buttons to toggle the mute status for the Input and Output on the TS3 Client
 - Automatically update the buttons states depending on the state on the TS3 Client
 
