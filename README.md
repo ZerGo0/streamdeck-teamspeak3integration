@@ -1,4 +1,4 @@
-# TeamSpeak 3 integration for Elgato Stream Deck
+# TeamSpeak 3 Integration for Elgato Stream Deck
 
 Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) with your Stream Deck
 
