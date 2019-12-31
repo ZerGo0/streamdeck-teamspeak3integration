@@ -1,59 +1,32 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
-
 using BarRaider.SdTools;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using PrimS.Telnet;
+using streamdeck_client_csharp;
+using streamdeck_client_csharp.Events;
+using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
     [PluginActionId("com.zergo0.teamspeak3integration.toggleinputmute")]
     public class TeamSpeak3InputMuteAction : PluginBase
     {
-        private class PluginSettings
-        {
-            public static PluginSettings CreateDefaultSettings()
-            {
-                PluginSettings instance = new PluginSettings
-                {
-                    ApiKey = string.Empty
-                };
-
-                return instance;
-            }
-
-            [JsonProperty(PropertyName = "apiKey")]
-            public string ApiKey { get; set; }
-        }
-
-        #region Private Members
-
-        private readonly PluginSettings _settings;
-        private readonly Stopwatch _stopwatch;
-        private int _savedSatus;
-        private Client _telnetclient;
-
-        #endregion
         public TeamSpeak3InputMuteAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
-            {
-                this._settings = PluginSettings.CreateDefaultSettings();
-            }
+                _settings = PluginSettings.CreateDefaultSettings();
             else
-            {
-                this._settings = payload.Settings.ToObject<PluginSettings>();
-            }
+                _settings = payload.Settings.ToObject<PluginSettings>();
             connection.StreamDeckConnection.OnSendToPlugin += StreamDeckConnection_OnSendToPlugin;
-            
+
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
-            
+
             SaveSettings();
         }
 
@@ -61,25 +34,27 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             _telnetclient?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Destructor called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
 
         public override async void KeyPressed(KeyPayload payload)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "Key Pressed");
-            
+
             if (_telnetclient == null || !_telnetclient.IsConnected)
             {
                 _telnetclient = await SetupTelnetClient();
                 if (_telnetclient == null) return;
             }
-            
+
             await ToggleMicMute(_telnetclient);
         }
 
-        public override void KeyReleased(KeyPayload payload) { }
+        public override void KeyReleased(KeyPayload payload)
+        {
+        }
 
-        public async override void OnTick()
+        public override async void OnTick()
         {
             if (_stopwatch.ElapsedMilliseconds <= 50) return;
             _stopwatch.Restart();
@@ -101,18 +76,19 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     await SetInputStatusImage(inputMuteStatus);
                     return;
                 }
+
                 switch (inputMuteStatus)
                 {
                     case -1:
                         return;
                     case 0:
-                        await SetInputStatusImage(0);
+                        await SetInputStatusImage();
                         break;
                     case 1:
                         await SetInputStatusImage(1);
                         break;
                 }
-            
+
                 _savedSatus = inputMuteStatus;
             }
             catch (Exception)
@@ -128,23 +104,47 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        {
+        }
+
+        private class PluginSettings
+        {
+            [JsonProperty(PropertyName = "apiKey")]
+            public string ApiKey { get; set; }
+
+            public static PluginSettings CreateDefaultSettings()
+            {
+                var instance = new PluginSettings
+                {
+                    ApiKey = string.Empty
+                };
+
+                return instance;
+            }
+        }
+
+        #region Private Members
+
+        private readonly PluginSettings _settings;
+        private readonly Stopwatch _stopwatch;
+        private int _savedSatus;
+        private Client _telnetclient;
+
+        #endregion
 
         #region Private Methods
-
 
         private Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(_settings));
         }
 
-        private async void StreamDeckConnection_OnSendToPlugin(object sender, streamdeck_client_csharp.StreamDeckEventReceivedEventArgs<streamdeck_client_csharp.Events.SendToPluginEvent> e)
+        private async void StreamDeckConnection_OnSendToPlugin(object sender,
+            StreamDeckEventReceivedEventArgs<SendToPluginEvent> e)
         {
             var payload = e.Event.Payload;
-            if (Connection.ContextId != e.Event.Context)
-            {
-                return;
-            }
+            if (Connection.ContextId != e.Event.Context) return;
         }
 
         private async Task<Client> SetupTelnetClient()
@@ -152,12 +152,13 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             Client client;
             try
             {
-                client = new Client("127.0.0.1", 25639, new System.Threading.CancellationToken());
+                client = new Client("127.0.0.1", 25639, new CancellationToken());
             }
             catch (SocketException)
             {
                 return null;
             }
+
             if (!client.IsConnected) return null;
 
             var welcomeMessage = await client.ReadAsync();
@@ -191,10 +192,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                         break;
                     case 1:
                         setOutputMuteStatus = await SetInputMuteStatus(telnetClient, "0");
-                        await SetInputStatusImage(0);
+                        await SetInputStatusImage();
                         break;
                 }
-            
+
                 if (!setOutputMuteStatus) return;
             }
             catch (Exception)
@@ -209,7 +210,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (!telnetClient.IsConnected) return false;
             await telnetClient.WriteLine($"auth apikey={_settings.ApiKey}");
             var authResponse = await telnetClient.ReadAsync();
-            
+
             return authResponse.Contains("msg=ok");
         }
 
@@ -218,12 +219,12 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (!telnetClient.IsConnected) return null;
             await telnetClient.WriteLine("whoami");
             var whoAmIResponse = await telnetClient.ReadAsync();
-            
+
             if (whoAmIResponse.Contains("msg=ok"))
-                return whoAmIResponse.Split(new string[] {"clid="},StringSplitOptions.None)[1]
+                return whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
                     .Split(' ')[0]
                     .Trim();
-            
+
             return null;
         }
 
@@ -232,12 +233,13 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (!telnetClient.IsConnected) return -1;
             await telnetClient.WriteLine($"clientvariable clid={clientId} client_input_muted");
             var inputMuteStatusIResponse = await telnetClient.ReadAsync();
-            
+
             if (inputMuteStatusIResponse.Contains("msg=ok"))
-                return int.Parse(inputMuteStatusIResponse.Split(new string[] {"client_input_muted="},StringSplitOptions.None)[1]
-                    .Split('\n')[0]
-                    .Trim());
-            
+                return int.Parse(
+                    inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
+                        .Split('\n')[0]
+                        .Trim());
+
             return -1;
         }
 
