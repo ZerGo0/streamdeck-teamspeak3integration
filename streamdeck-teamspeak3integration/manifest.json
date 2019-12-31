@@ -21,7 +21,7 @@
       ],
       "SupportedInMultiActions": true,
       "Tooltip": "Toggles the INPUT mute status on TeamSpeak 3 via ClientQuery",
-      "UUID": "com.zergo0.teamspeak3integration.toggleInputMute",
+      "UUID": "com.zergo0.teamspeak3integration.toggleinputmute",
       "PropertyInspectorPath": "PropertyInspector/ToggleInputMute/ToggleInputMute.html"
     },
     {
@@ -45,7 +45,7 @@
       ],
       "SupportedInMultiActions": true,
       "Tooltip": "Toggles the OUTPUT mute status on TeamSpeak 3 via ClientQuery",
-      "UUID": "com.zergo0.teamspeak3integration.toggleOutputMute",
+      "UUID": "com.zergo0.teamspeak3integration.toggleoutputmute",
       "PropertyInspectorPath": "PropertyInspector/ToggleOutputMute/ToggleOutputMute.html"
     }
   ],

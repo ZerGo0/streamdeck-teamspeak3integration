@@ -13,7 +13,7 @@ using PrimS.Telnet;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
-    [PluginActionId("com.zergo0.teamspeak3integration.toggleOutputMute")]
+    [PluginActionId("com.zergo0.teamspeak3integration.toggleoutputmute")]
     public class TeamSpeak3OutputMuteAction : PluginBase
     {
         private class PluginSettings
