@@ -10,6 +10,7 @@ You need to have the [ClientQuery plugin](https://www.myteamspeak.com/addons/943
 - It should now mute you on the currently selected server tab
 - Renamed Plugin Category and Action Names
 - Added Detailed Guide for the API-Key Setup: [Here](https://github.com/ZerGo0/streamdeck-teamspeak3integration/blob/master/Docs/API%20Key%20Guide.md)
+
 [v1.0](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.0):
 - Added 2 buttons to toggle the mute status for the Input and Output on the TS3 Client
 - Automatically update the buttons states depending on the state on the TS3 Client
