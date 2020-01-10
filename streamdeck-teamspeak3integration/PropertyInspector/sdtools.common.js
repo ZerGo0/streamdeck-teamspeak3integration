@@ -163,12 +163,12 @@ function sendValueToPlugin(value, param) {
 	}
 }
 
-function openWebsite() {
+function openAPISetupGuide() {
 	if (websocket && (websocket.readyState === 1)) {
 		const json = {
 			'event': "openUrl",
 			'payload': {
-				'url': "https://BarRaider.com"
+				'url': "https://github.com/ZerGo0/streamdeck-teamspeak3integration/blob/master/Docs/API%20Key%20Guide.md"
 			}
 		};
 		websocket.send(JSON.stringify(json));
@@ -255,7 +255,7 @@ function addDynamicStyles(clrs) {
     }
     `;
 	document.body.appendChild(node);
-};
+}
 
 /** UTILITIES */
 
