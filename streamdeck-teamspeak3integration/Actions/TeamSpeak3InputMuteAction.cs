@@ -1,14 +1,18 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
+
 using BarRaider.SdTools;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 using PrimS.Telnet;
+
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
+
+using ZerGo0.TeamSpeak3Integration.Helpers;
+
 using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
@@ -23,9 +27,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             else
                 _settings = payload.Settings.ToObject<PluginSettings>();
             connection.StreamDeckConnection.OnSendToPlugin += StreamDeckConnection_OnSendToPlugin;
-
-            _stopwatch = new Stopwatch();
-            _stopwatch.Start();
 
             SaveSettings();
         }
@@ -43,7 +44,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
             if (_telnetclient == null || !_telnetclient.IsConnected)
             {
-                _telnetclient = await SetupTelnetClient();
+                _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
                 if (_telnetclient == null) return;
             }
 
@@ -56,21 +57,22 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override async void OnTick()
         {
-            if (_stopwatch.ElapsedMilliseconds <= 50) return;
-            _stopwatch.Restart();
-
             try
             {
                 if (_telnetclient == null || !_telnetclient.IsConnected)
                 {
-                    _telnetclient = await SetupTelnetClient();
+                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
                     if (_telnetclient == null) return;
                 }
 
-                var clientId = await GetClientId(_telnetclient);
-                if (clientId == null) return;
+                var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
+                if (clientId == null)
+                {
+                    _telnetclient?.Dispose();
+                    return;
+                }
 
-                var inputMuteStatus = await GetInputMuteStatus(_telnetclient, clientId);
+                var inputMuteStatus = await TeamSpeak3Telnet.GetInputMuteStatus(_telnetclient, clientId);
                 if (inputMuteStatus == _savedSatus)
                 {
                     await SetInputStatusImage(inputMuteStatus);
@@ -94,7 +96,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             catch (Exception)
             {
                 _telnetclient?.Dispose();
-                //await SetInputStatusImage(0);
+                _telnetclient = null;
+                await SetInputStatusImage();
             }
         }
 
@@ -124,16 +127,15 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
         }
 
-        #region Private Members
+#region Private Members
 
         private readonly PluginSettings _settings;
-        private readonly Stopwatch _stopwatch;
         private int _savedSatus;
         private Client _telnetclient;
 
-        #endregion
+#endregion
 
-        #region Private Methods
+#region Private Methods
 
         private Task SaveSettings()
         {
@@ -147,51 +149,29 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task<Client> SetupTelnetClient()
-        {
-            Client client;
-            try
-            {
-                client = new Client("127.0.0.1", 25639, new CancellationToken());
-            }
-            catch (SocketException)
-            {
-                return null;
-            }
-
-            if (!client.IsConnected) return null;
-
-            var welcomeMessage = await client.ReadAsync();
-            if (!welcomeMessage.Contains("TS3 Client")) return null;
-
-            if (!await AuthenticateTelnet(client)) return null;
-
-            return client;
-        }
-
         private async Task ToggleMicMute(Client telnetClient)
         {
             try
             {
-                var clientId = await GetClientId(telnetClient);
+                var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
                 if (clientId == null)
                 {
-                    telnetClient.Dispose();
+                    _telnetclient?.Dispose();
                     return;
                 }
 
-                var outputMuteStatus = await GetInputMuteStatus(telnetClient, clientId);
+                var outputMuteStatus = await TeamSpeak3Telnet.GetInputMuteStatus(telnetClient, clientId);
                 var setOutputMuteStatus = false;
                 switch (outputMuteStatus)
                 {
                     case -1:
                         return;
                     case 0:
-                        setOutputMuteStatus = await SetInputMuteStatus(telnetClient, "1");
+                        setOutputMuteStatus = await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "1");
                         await SetInputStatusImage(1);
                         break;
                     case 1:
-                        setOutputMuteStatus = await SetInputMuteStatus(telnetClient, "0");
+                        setOutputMuteStatus = await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "0");
                         await SetInputStatusImage();
                         break;
                 }
@@ -201,55 +181,9 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             catch (Exception)
             {
                 _telnetclient?.Dispose();
-                //await SetInputStatusImage(0);
+                _telnetclient = null;
+                await SetInputStatusImage();
             }
-        }
-
-        private async Task<bool> AuthenticateTelnet(Client telnetClient)
-        {
-            if (!telnetClient.IsConnected) return false;
-            await telnetClient.WriteLine($"auth apikey={_settings.ApiKey}");
-            var authResponse = await telnetClient.ReadAsync();
-
-            return authResponse.Contains("msg=ok");
-        }
-
-        private async Task<string> GetClientId(Client telnetClient)
-        {
-            if (!telnetClient.IsConnected) return null;
-            await telnetClient.WriteLine("whoami");
-            var whoAmIResponse = await telnetClient.ReadAsync();
-
-            if (whoAmIResponse.Contains("msg=ok"))
-                return whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
-                    .Split(' ')[0]
-                    .Trim();
-
-            return null;
-        }
-
-        private async Task<int> GetInputMuteStatus(Client telnetClient, string clientId)
-        {
-            if (!telnetClient.IsConnected) return -1;
-            await telnetClient.WriteLine($"clientvariable clid={clientId} client_input_muted");
-            var inputMuteStatusIResponse = await telnetClient.ReadAsync();
-
-            if (inputMuteStatusIResponse.Contains("msg=ok"))
-                return int.Parse(
-                    inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
-                        .Split('\n')[0]
-                        .Trim());
-
-            return -1;
-        }
-
-        private async Task<bool> SetInputMuteStatus(Client telnetClient, string inputMuteStatus)
-        {
-            if (!telnetClient.IsConnected) return false;
-            await telnetClient.WriteLine($"clientupdate client_input_muted={inputMuteStatus}");
-            var setInputMuteStatusResponse = await telnetClient.ReadAsync();
-
-            return setInputMuteStatusResponse.Contains("msg=ok");
         }
 
         private async Task SetInputStatusImage(int muted = 0)
@@ -257,16 +191,14 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             switch (muted)
             {
                 case 0:
-                    await Connection.StreamDeckConnection.SetStateAsync(0, Connection.ContextId);
-                    //await Connection.SetStateAsync(0);
+                    await Connection.SetStateAsync(0);
                     break;
                 case 1:
-                    await Connection.StreamDeckConnection.SetStateAsync(1, Connection.ContextId);
-                    //await Connection.SetStateAsync(1);
+                    await Connection.SetStateAsync(1);
                     break;
             }
         }
 
-        #endregion
+#endregion
     }
 }
