@@ -103,13 +103,13 @@
     <Content Include="Images\AFKStatusOFF.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Images\AFKStatusOFF2x.png">
+    <Content Include="Images\AFKStatusOFF@2x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\AFKStatusON.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Images\AFKStatusON2x.png">
+    <Content Include="Images\AFKStatusON@2x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\categoryIcon%402x.png">
@@ -133,7 +133,7 @@
     <Content Include="Images\Nickname.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Images\Nickname2x.png">
+    <Content Include="Images\Nickname@2x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\pluginIcon%402x.png">
