@@ -6,6 +6,10 @@ Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) 
 You need to have the [ClientQuery plugin](https://www.myteamspeak.com/addons/943dd816-7ef2-48d7-82b8-d60c3b9b10b3) installed in your TeamSpeak 3 Client in order to use this plugin.
 
 ## Changelog
+[v1.2](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.2):
+- Added `Change Nickname` Action which allows you to change your name when you press the button
+- Added `Toggle Away Status` Action which allows you to toggle the away status when you press the button
+
 [v1.1](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.1):
 - It should now mute you on the currently selected server tab
 - Renamed Plugin Category and Action Names
@@ -18,7 +22,9 @@ You need to have the [ClientQuery plugin](https://www.myteamspeak.com/addons/943
 ## Features
 - Toggle mute Input on TS3 with a button press
 - Toggle mute Output on TS3 with a button press
+- Toggle Away Status on TS3 with a button press (supports `Away Status Message`)
 - Automatically update the status of the button even when you didn't use the Stream Deck to perform the action
+- Change your Nickname on TS3 with a button press
 
 ### Download
 
