@@ -47,11 +47,51 @@
       "Tooltip": "Toggles the OUTPUT mute status on TeamSpeak 3 via ClientQuery",
       "UUID": "com.zergo0.teamspeak3integration.toggleoutputmute",
       "PropertyInspectorPath": "PropertyInspector/ToggleOutputMute/ToggleOutputMute.html"
+    },
+    {
+      "Icon": "Images/Nickname",
+      "Name": "Change Nickname",
+      "States": [
+        {
+          "Image": "Images/Nickname",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nChange Nick",
+          "Name": "Nickname"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change your nickname on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.changenickname",
+      "PropertyInspectorPath": "PropertyInspector/ChangeNickname/ChangeNickname.html"
+    },
+    {
+      "Icon": "Images/AFKStatusON",
+      "Name": "Toggle Away Status",
+      "States": [
+        {
+          "Image": "Images/AFKStatusOFF",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nAway Status",
+          "Name": "Away Off"
+        },
+        {
+          "Image": "Images/AFKStatusON",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nAway Status",
+          "Name": "Away On"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggles the Away status on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.toggleawaystatus",
+      "PropertyInspectorPath": "PropertyInspector/ToggleAwayStatus/ToggleAwayStatus.html"
     }
   ],
   "Author": "ZerGo0",
-  "Description":
-    "Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) with your Stream Deck",
+  "Description": "Allows you to interact with the TeamSpeak 3 Client via the ClientQuery (Telnet) with your Stream Deck",
   "Name": "TeamSpeak 3 Integration",
   "Icon": "Images/pluginIcon",
   "URL": "https://github.com/ZerGo0",

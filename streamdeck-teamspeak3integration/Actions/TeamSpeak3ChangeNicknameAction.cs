@@ -17,10 +17,11 @@ using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
-    [PluginActionId("com.zergo0.teamspeak3integration.toggleoutputmute")]
-    public class TeamSpeak3OutputMuteAction : PluginBase
+    [PluginActionId("com.zergo0.teamspeak3integration.changenickname")]
+    public class TeamSpeak3ChangeNicknameAction : PluginBase
     {
-        public TeamSpeak3OutputMuteAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public TeamSpeak3ChangeNicknameAction(SDConnection connection, InitialPayload payload) : base(connection,
+            payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
                 _settings = PluginSettings.CreateDefaultSettings();
@@ -48,7 +49,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 if (_telnetclient == null) return;
             }
 
-            await ToggleOutputMute(_telnetclient);
+            await ChangeNickname(_telnetclient);
         }
 
         public override void KeyReleased(KeyPayload payload)
@@ -57,44 +58,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override async void OnTick()
         {
-            try
-            {
-                if (_telnetclient == null || !_telnetclient.IsConnected)
-                {
-                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (_telnetclient == null) return;
-                }
-
-                var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
-                if (clientId == null) return;
-
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(_telnetclient, clientId);
-                if (outputMuteStatus == _savedSatus)
-                {
-                    await SetOutputStatusImage(outputMuteStatus);
-                    return;
-                }
-
-                switch (outputMuteStatus)
-                {
-                    case -1:
-                        return;
-                    case 0:
-                        await SetOutputStatusImage();
-                        break;
-                    case 1:
-                        await SetOutputStatusImage(1);
-                        break;
-                }
-
-                _savedSatus = outputMuteStatus;
-            }
-            catch (Exception)
-            {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
-                await SetOutputStatusImage();
-            }
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -112,11 +75,15 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             [JsonProperty(PropertyName = "apiKey")]
             public string ApiKey { get; set; }
 
+            [JsonProperty(PropertyName = "nickName")]
+            public string NickName { get; set; }
+
             public static PluginSettings CreateDefaultSettings()
             {
                 var instance = new PluginSettings
                 {
-                    ApiKey = string.Empty
+                    ApiKey = string.Empty,
+                    NickName = string.Empty
                 };
 
                 return instance;
@@ -126,7 +93,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 #region Private Members
 
         private readonly PluginSettings _settings;
-        private int _savedSatus;
         private Client _telnetclient;
 
 #endregion
@@ -145,53 +111,23 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleOutputMute(Client telnetClient)
+        private async Task ChangeNickname(Client telnetClient)
         {
             try
             {
                 var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
                 if (clientId == null)
                 {
-                    telnetClient.Dispose();
+                    _telnetclient?.Dispose();
                     return;
                 }
 
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(telnetClient, clientId);
-                var setOutputMuteStatus = false;
-                switch (outputMuteStatus)
-                {
-                    case -1:
-                        return;
-                    case 0:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "1");
-                        await SetOutputStatusImage(1);
-                        break;
-                    case 1:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "0");
-                        await SetOutputStatusImage();
-                        break;
-                }
-
-                if (!setOutputMuteStatus) return;
+                await TeamSpeak3Telnet.ChangeNickname(_telnetclient, _settings.NickName);
             }
             catch (Exception)
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetOutputStatusImage();
-            }
-        }
-
-        private async Task SetOutputStatusImage(int muted = 0)
-        {
-            switch (muted)
-            {
-                case 0:
-                    await Connection.SetStateAsync(0);
-                    break;
-                case 1:
-                    await Connection.SetStateAsync(1);
-                    break;
             }
         }
 

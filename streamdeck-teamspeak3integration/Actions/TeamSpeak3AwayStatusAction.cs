@@ -17,10 +17,10 @@ using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
-    [PluginActionId("com.zergo0.teamspeak3integration.toggleoutputmute")]
-    public class TeamSpeak3OutputMuteAction : PluginBase
+    [PluginActionId("com.zergo0.teamspeak3integration.toggleawaystatus")]
+    public class TeamSpeak3AwayStatusAction : PluginBase
     {
-        public TeamSpeak3OutputMuteAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public TeamSpeak3AwayStatusAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
                 _settings = PluginSettings.CreateDefaultSettings();
@@ -48,7 +48,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 if (_telnetclient == null) return;
             }
 
-            await ToggleOutputMute(_telnetclient);
+            await ToggleAwayStatus(_telnetclient);
         }
 
         public override void KeyReleased(KeyPayload payload)
@@ -66,34 +66,38 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 }
 
                 var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
-                if (clientId == null) return;
-
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(_telnetclient, clientId);
-                if (outputMuteStatus == _savedSatus)
+                if (clientId == null)
                 {
-                    await SetOutputStatusImage(outputMuteStatus);
+                    _telnetclient?.Dispose();
                     return;
                 }
 
-                switch (outputMuteStatus)
+                var awayStatus = await TeamSpeak3Telnet.GetAwayStatus(_telnetclient, clientId);
+                if (awayStatus == _savedSatus)
+                {
+                    await SetAwayStatusImage(awayStatus);
+                    return;
+                }
+
+                switch (awayStatus)
                 {
                     case -1:
                         return;
                     case 0:
-                        await SetOutputStatusImage();
+                        await SetAwayStatusImage();
                         break;
                     case 1:
-                        await SetOutputStatusImage(1);
+                        await SetAwayStatusImage(1);
                         break;
                 }
 
-                _savedSatus = outputMuteStatus;
+                _savedSatus = awayStatus;
             }
             catch (Exception)
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetOutputStatusImage();
+                await SetAwayStatusImage();
             }
         }
 
@@ -112,11 +116,15 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             [JsonProperty(PropertyName = "apiKey")]
             public string ApiKey { get; set; }
 
+            [JsonProperty(PropertyName = "awayStatusMessage")]
+            public string AwayStatusMessage { get; set; }
+
             public static PluginSettings CreateDefaultSettings()
             {
                 var instance = new PluginSettings
                 {
-                    ApiKey = string.Empty
+                    ApiKey = string.Empty,
+                    AwayStatusMessage = string.Empty
                 };
 
                 return instance;
@@ -145,44 +153,46 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleOutputMute(Client telnetClient)
+        private async Task ToggleAwayStatus(Client telnetClient)
         {
             try
             {
                 var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
                 if (clientId == null)
                 {
-                    telnetClient.Dispose();
+                    _telnetclient?.Dispose();
                     return;
                 }
 
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(telnetClient, clientId);
-                var setOutputMuteStatus = false;
-                switch (outputMuteStatus)
+                var awayStatus = await TeamSpeak3Telnet.GetAwayStatus(telnetClient, clientId);
+                var setAwayStatus = false;
+                switch (awayStatus)
                 {
                     case -1:
                         return;
                     case 0:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "1");
-                        await SetOutputStatusImage(1);
+                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "1");
+                        if (_settings.AwayStatusMessage.Length > 0)
+                            await TeamSpeak3Telnet.SetAwayMessage(telnetClient, _settings.AwayStatusMessage);
+                        await SetAwayStatusImage(1);
                         break;
                     case 1:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "0");
-                        await SetOutputStatusImage();
+                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "0");
+                        await SetAwayStatusImage();
                         break;
                 }
 
-                if (!setOutputMuteStatus) return;
+                if (!setAwayStatus) return;
             }
             catch (Exception)
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetOutputStatusImage();
+                await SetAwayStatusImage();
             }
         }
 
-        private async Task SetOutputStatusImage(int muted = 0)
+        private async Task SetAwayStatusImage(int muted = 0)
         {
             switch (muted)
             {
