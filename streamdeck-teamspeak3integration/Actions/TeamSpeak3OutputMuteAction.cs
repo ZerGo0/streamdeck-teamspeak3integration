@@ -42,13 +42,25 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "Key Pressed");
 
-            if (_telnetclient == null || !_telnetclient.IsConnected)
+            try
             {
-                _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                if (_telnetclient == null) return;
-            }
+                if (_telnetclient == null || !_telnetclient.IsConnected)
+                {
+                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (_telnetclient == null) return;
+                }
 
-            await ToggleOutputMute(_telnetclient);
+                if (payload.IsInMultiAction)
+                    await ToggleOutputMute(_telnetclient, (int) payload.UserDesiredState);
+                else
+                    await ToggleOutputMute(_telnetclient);
+            }
+            catch (Exception e)
+            {
+                _telnetclient?.Dispose();
+                _telnetclient = null;
+                await SetOutputStatusImage();
+            }
         }
 
         public override void KeyReleased(KeyPayload payload)
@@ -145,7 +157,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleOutputMute(Client telnetClient)
+        private async Task ToggleOutputMute(Client telnetClient, int desiredState = -1)
         {
             try
             {
@@ -156,7 +168,12 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     return;
                 }
 
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(telnetClient, clientId);
+                int outputMuteStatus;
+                if (desiredState == -1)
+                    outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(telnetClient, clientId);
+                else
+                    outputMuteStatus = desiredState == 1 ? 0 : 1;
+
                 var setOutputMuteStatus = false;
                 switch (outputMuteStatus)
                 {

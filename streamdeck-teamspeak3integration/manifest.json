@@ -49,23 +49,6 @@
       "PropertyInspectorPath": "PropertyInspector/ToggleOutputMute/ToggleOutputMute.html"
     },
     {
-      "Icon": "Images/Nickname",
-      "Name": "Change Nickname",
-      "States": [
-        {
-          "Image": "Images/Nickname",
-          "TitleAlignment": "bottom",
-          "FontSize": "9",
-          "Title": "TeamSpeak\nChange Nick",
-          "Name": "Nickname"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "Tooltip": "Change your Nickname on TeamSpeak 3 via ClientQuery",
-      "UUID": "com.zergo0.teamspeak3integration.changenickname",
-      "PropertyInspectorPath": "PropertyInspector/ChangeNickname/ChangeNickname.html"
-    },
-    {
       "Icon": "Images/AFKStatusON",
       "Name": "Toggle Away Status",
       "States": [
@@ -88,6 +71,23 @@
       "Tooltip": "Toggles the Away status on TeamSpeak 3 via ClientQuery",
       "UUID": "com.zergo0.teamspeak3integration.toggleawaystatus",
       "PropertyInspectorPath": "PropertyInspector/ToggleAwayStatus/ToggleAwayStatus.html"
+    },
+    {
+      "Icon": "Images/Nickname",
+      "Name": "Change Nickname",
+      "States": [
+        {
+          "Image": "Images/Nickname",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nChange Nick",
+          "Name": "Nickname"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change your Nickname on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.changenickname",
+      "PropertyInspectorPath": "PropertyInspector/ChangeNickname/ChangeNickname.html"
     }
   ],
   "Author": "ZerGo0",
