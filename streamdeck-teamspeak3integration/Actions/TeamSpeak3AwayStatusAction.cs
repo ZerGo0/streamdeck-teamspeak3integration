@@ -59,7 +59,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetAwayStatusImage();
+                await SetAwayStatusState();
             }
         }
 
@@ -87,7 +87,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 var awayStatus = await TeamSpeak3Telnet.GetAwayStatus(_telnetclient, clientId);
                 if (awayStatus == _savedSatus)
                 {
-                    await SetAwayStatusImage(awayStatus);
+                    await SetAwayStatusState(awayStatus);
                     return;
                 }
 
@@ -96,10 +96,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        await SetAwayStatusImage();
+                        await SetAwayStatusState();
                         break;
                     case 1:
-                        await SetAwayStatusImage(1);
+                        await SetAwayStatusState(1);
                         break;
                 }
 
@@ -109,7 +109,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetAwayStatusImage();
+                await SetAwayStatusState();
             }
         }
 
@@ -191,11 +191,9 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                         setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "1");
                         if (_settings.AwayStatusMessage.Length > 0)
                             await TeamSpeak3Telnet.SetAwayMessage(telnetClient, _settings.AwayStatusMessage);
-                        await SetAwayStatusImage(1);
                         break;
                     case 1:
                         setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "0");
-                        await SetAwayStatusImage();
                         break;
                 }
 
@@ -205,11 +203,11 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetAwayStatusImage();
+                await SetAwayStatusState();
             }
         }
 
-        private async Task SetAwayStatusImage(int muted = 0)
+        private async Task SetAwayStatusState(int muted = 0)
         {
             switch (muted)
             {

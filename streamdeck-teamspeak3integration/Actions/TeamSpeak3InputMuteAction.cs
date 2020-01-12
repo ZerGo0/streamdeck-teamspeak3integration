@@ -59,7 +59,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetInputStatusImage();
+                await SetInputStatusState();
             }
         }
 
@@ -87,7 +87,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 var inputMuteStatus = await TeamSpeak3Telnet.GetInputMuteStatus(_telnetclient, clientId);
                 if (inputMuteStatus == _savedSatus)
                 {
-                    await SetInputStatusImage(inputMuteStatus);
+                    await SetInputStatusState(inputMuteStatus);
                     return;
                 }
 
@@ -96,10 +96,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        await SetInputStatusImage();
+                        await SetInputStatusState();
                         break;
                     case 1:
-                        await SetInputStatusImage(1);
+                        await SetInputStatusState(1);
                         break;
                 }
 
@@ -109,7 +109,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetInputStatusImage();
+                await SetInputStatusState();
             }
         }
 
@@ -185,11 +185,9 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                         return;
                     case 0:
                         setOutputMuteStatus = await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "1");
-                        await SetInputStatusImage(1);
                         break;
                     case 1:
                         setOutputMuteStatus = await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "0");
-                        await SetInputStatusImage();
                         break;
                 }
 
@@ -199,11 +197,11 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
-                await SetInputStatusImage();
+                await SetInputStatusState();
             }
         }
 
-        private async Task SetInputStatusImage(int muted = 0)
+        private async Task SetInputStatusState(int muted = 0)
         {
             switch (muted)
             {
