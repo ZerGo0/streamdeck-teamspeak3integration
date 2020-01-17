@@ -55,7 +55,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 else
                     await ToggleOutputMute(_telnetclient);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _telnetclient?.Dispose();
                 _telnetclient = null;
@@ -150,7 +150,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(_settings));
         }
 
-        private async void StreamDeckConnection_OnSendToPlugin(object sender,
+        private void StreamDeckConnection_OnSendToPlugin(object sender,
             StreamDeckEventReceivedEventArgs<SendToPluginEvent> e)
         {
             var payload = e.Event.Payload;

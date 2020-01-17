@@ -56,7 +56,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
         }
 
-        public override async void OnTick()
+        public override void OnTick()
         {
         }
 
@@ -104,7 +104,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(_settings));
         }
 
-        private async void StreamDeckConnection_OnSendToPlugin(object sender,
+        private void StreamDeckConnection_OnSendToPlugin(object sender,
             StreamDeckEventReceivedEventArgs<SendToPluginEvent> e)
         {
             var payload = e.Event.Payload;

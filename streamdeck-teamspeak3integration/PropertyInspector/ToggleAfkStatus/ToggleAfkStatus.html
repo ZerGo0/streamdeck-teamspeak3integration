@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"
+          name="viewport">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <title>ZerGo0's TeamSpeak 3 Integration Plugin</title>
+    <link href="../sdpi.css" rel="stylesheet">
+    <script src="../sdtools.common.js"></script>
+    <script src="../TeamSpeak3Integration.js"></script>
+</head>
+<body>
+<div class="sdpi-wrapper">
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">ClientQuery API Key</div>
+        <input class="sdpi-item-value sdProperty" id="apiKey" oninput="setSettings()" placeholder="" value="">
+    </div>
+    <details class="message">
+        <summary></summary>
+    </details>
+    <details class="message">
+        <summary>How to get the ClientQuery API Key:</summary>
+    </details>
+    <details class="message">
+        <summary>TS3>Tools>Options>Addons>ClientQuery>Settings</summary>
+    </details>
+    <details class="message">
+        <summary>Detailed Guide with pictures: <span class="linkspan" onclick="openAPISetupGuide()">Here</span>
+        </summary>
+    </details>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Away Status Message</div>
+        <input class="sdpi-item-value sdProperty" id="awayStatusMessage" oninput="setSettings()" placeholder=""
+               value="">
+    </div>
+</div>
+</body>
+</html>

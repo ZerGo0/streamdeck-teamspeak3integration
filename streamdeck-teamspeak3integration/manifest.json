@@ -73,6 +73,30 @@
       "PropertyInspectorPath": "PropertyInspector/ToggleAwayStatus/ToggleAwayStatus.html"
     },
     {
+      "Icon": "Images/AFKStatusON",
+      "Name": "Toggle AFK Status",
+      "States": [
+        {
+          "Image": "Images/AFKStatusOFF",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nAFK Status",
+          "Name": "AFK Off"
+        },
+        {
+          "Image": "Images/AFKStatusON",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nAFK Status",
+          "Name": "AFK On"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggles the Away, Input and Output status on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.toggleafkstatus",
+      "PropertyInspectorPath": "PropertyInspector/ToggleAfkStatus/ToggleAfkStatus.html"
+    },
+    {
       "Icon": "Images/Nickname",
       "Name": "Change Nickname",
       "States": [
@@ -95,7 +119,7 @@
   "Name": "TeamSpeak 3 Integration",
   "Icon": "Images/pluginIcon",
   "URL": "https://github.com/ZerGo0",
-  "Version": "1.2",
+  "Version": "1.3",
   "CodePath": "com.zergo0.teamspeak3integration",
   "Category": "[ZerGo0] TeamSpeak 3 Integration",
   "CategoryIcon": "Images/categoryIcon",

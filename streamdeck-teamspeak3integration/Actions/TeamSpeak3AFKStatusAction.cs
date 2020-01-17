@@ -17,10 +17,10 @@ using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
-    [PluginActionId("com.zergo0.teamspeak3integration.toggleawaystatus")]
-    public class TeamSpeak3AwayStatusAction : PluginBase
+    [PluginActionId("com.zergo0.teamspeak3integration.toggleafkstatus")]
+    public class TeamSpeak3AfkStatusAction : PluginBase
     {
-        public TeamSpeak3AwayStatusAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public TeamSpeak3AfkStatusAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
                 _settings = PluginSettings.CreateDefaultSettings();
@@ -188,11 +188,15 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
+                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "1");
+                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "1");
                         setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "1");
                         if (_settings.AwayStatusMessage.Length > 0)
                             await TeamSpeak3Telnet.SetAwayMessage(telnetClient, _settings.AwayStatusMessage);
                         break;
                     case 1:
+                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "0");
+                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "0");
                         setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "0");
                         break;
                 }

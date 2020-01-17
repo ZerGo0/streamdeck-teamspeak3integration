@@ -129,11 +129,11 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             return -1;
         }
 
-        public static async Task<bool> SetOutputMuteStatus(Client telnetClient, string inputMuteStatus)
+        public static async Task<bool> SetOutputMuteStatus(Client telnetClient, string outputMuteStatus)
         {
             if (!telnetClient.IsConnected) return false;
 
-            await telnetClient.WriteLine($"clientupdate client_output_muted={inputMuteStatus}");
+            await telnetClient.WriteLine($"clientupdate client_output_muted={outputMuteStatus}");
             var setInputMuteStatusResponse = await telnetClient.ReadAsync();
 
             return setInputMuteStatusResponse.Contains("msg=ok");
