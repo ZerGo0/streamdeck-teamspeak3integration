@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 using PrimS.Telnet;
 
@@ -9,241 +8,277 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 {
     internal static class TeamSpeak3Telnet
     {
-        public static async Task<Client> SetupTelnetClient(string apiKey)
+        public static Client Ts3Client;
+        private static readonly object _TS3_CLIENT_LOCK_OBJ = new object();
+        public static void SetupTelnetClient(string apiKey)
         {
-            Client client;
-            try
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                client = new Client("127.0.0.1", 25639, new CancellationToken());
+                if (Ts3Client != null && Ts3Client.IsConnected) return;
+                
+                try
+                {
+                    Ts3Client = new Client("127.0.0.1", 25639, new CancellationToken());
+                }
+                catch (SocketException)
+                {
+                    Ts3Client = null;
+                    return;
+                }
+
+                if (!Ts3Client.IsConnected)
+                {
+                    Ts3Client = null;
+                    return;
+                }
+
+                var welcomeMessage = Ts3Client.ReadAsync().Result;
+                if (!welcomeMessage.Contains("TS3 Client")) 
+                {
+                    Ts3Client = null;
+                    return;
+                }
+
+                if (!AuthenticateTelnet(apiKey)) Ts3Client = null;
             }
-            catch (SocketException)
-            {
-                return null;
-            }
-
-            if (!client.IsConnected) return null;
-
-            var welcomeMessage = await client.ReadAsync();
-            if (!welcomeMessage.Contains("TS3 Client")) return null;
-
-            if (!await AuthenticateTelnet(client, apiKey)) return null;
-
-            return client;
         }
 
-        private static async Task<bool> AuthenticateTelnet(Client telnetClient, string apiKey)
+        private static bool AuthenticateTelnet(string apiKey)
         {
-            if (!telnetClient.IsConnected) return false;
-
-            await telnetClient.WriteLine($"auth apikey={apiKey}");
-            var authResponse = await telnetClient.ReadAsync();
-
-            return authResponse.Contains("msg=ok");
-        }
-
-        private static async Task<bool> SelectCurrentServer(Client telnetClient)
-        {
-            if (!telnetClient.IsConnected) return false;
-
-            await telnetClient.WriteLine("use");
-            var useResponse = await telnetClient.ReadAsync();
-
-            return useResponse.Contains("msg=ok");
-        }
-
-        public static async Task<int> GetClientId(Client telnetClient)
-        {
-            if (!await SelectCurrentServer(telnetClient)) return -1;
-
-            if (!telnetClient.IsConnected) return -1;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine("whoami");
-                var whoAmIResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return false;
 
-                if (whoAmIResponse.Contains("msg=ok"))
-                    return int.Parse(whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
-                        .Split(' ')[0]
-                        .Trim());
+                Ts3Client.WriteLine($"auth apikey={apiKey}");
+                var authResponse = Ts3Client.ReadAsync().Result;
 
-                retries++;
-                await Task.Delay(10);
+                return authResponse.Contains("msg=ok");
             }
+        }
 
-            return -1;
+        private static bool SelectCurrentServer()
+        {
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!Ts3Client.IsConnected) return false;
+
+                Ts3Client.WriteLine("use");
+                var useResponse = Ts3Client.ReadAsync().Result;
+
+                return useResponse.Contains("msg=ok");
+            }
+        }
+
+        public static int GetClientId()
+        {
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!SelectCurrentServer()) return -1;
+
+                if (!Ts3Client.IsConnected) return -1;
+
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine("whoami");
+                    var whoAmIResponse = Ts3Client.ReadAsync().Result;
+
+                    if (whoAmIResponse.Contains("msg=ok"))
+                        return int.Parse(whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
+                            .Split(' ')[0]
+                            .Trim());
+
+                    retries++;
+                }
+
+                return -1;
+            }
         }
 
 #region Nickname Stuff
 
-        public static async Task<bool> ChangeNickname(Client telnetClient, string nickname)
+        public static bool ChangeNickname(string nickname)
         {
-            if (!telnetClient.IsConnected) return false;
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!Ts3Client.IsConnected) return false;
 
-            await telnetClient.WriteLine($"clientupdate client_nickname={nickname}");
-            var changeNicknameResponse = await telnetClient.ReadAsync();
+                Ts3Client.WriteLine($"clientupdate client_nickname={nickname}");
+                var changeNicknameResponse = Ts3Client.ReadAsync().Result;
 
-            return changeNicknameResponse.Contains("msg=ok");
+                return changeNicknameResponse.Contains("msg=ok");
+            }
         }
 
 #endregion
 
 #region Input Stuff
 
-        public static async Task<int> GetInputMuteStatus(Client telnetClient, int clientId)
+        public static int GetInputMuteStatus(int clientId)
         {
-            if (!telnetClient.IsConnected) return -1;
-            
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientvariable clid={clientId} client_input_muted");
-                var inputMuteStatusIResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return -1;
+                
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientvariable clid={clientId} client_input_muted");
+                    var inputMuteStatusIResponse = Ts3Client.ReadAsync().Result;
 
-                if (inputMuteStatusIResponse.Contains("msg=ok"))
-                    return int.Parse(
-                        inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
-                            .Split('\n')[0]
-                            .Trim());
+                    if (inputMuteStatusIResponse.Contains("msg=ok"))
+                        return int.Parse(
+                            inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
+                                .Split('\n')[0]
+                                .Trim());
 
-                retries++;
-                await Task.Delay(10);
+                    retries++;
+                }
+
+                return -1;
             }
-
-            return -1;
         }
 
-        public static async Task<bool> SetInputMuteStatus(Client telnetClient, int inputMuteStatus)
+        public static bool SetInputMuteStatus(int inputMuteStatus)
         {
-            if (!telnetClient.IsConnected) return false;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientupdate client_input_muted={inputMuteStatus}");
-                var setInputMuteStatusResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return false;
 
-                if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientupdate client_input_muted={inputMuteStatus}");
+                    var setInputMuteStatusResponse = Ts3Client.ReadAsync().Result;
 
-                retries++;
-                await Task.Delay(10);
+                    if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+
+                    retries++;
+                }
+
+                return false;
             }
-
-            return false;
         }
 
 #endregion
 
 #region Output Stuff
 
-        public static async Task<int> GetOutputMuteStatus(Client telnetClient, int clientId)
+        public static int GetOutputMuteStatus(int clientId)
         {
-            if (!telnetClient.IsConnected) return -1;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientvariable clid={clientId} client_output_muted");
-                var inputMuteStatusIResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return -1;
 
-                if (inputMuteStatusIResponse.Contains("msg=ok"))
-                    return int.Parse(
-                        inputMuteStatusIResponse.Split(new[] {"client_output_muted="}, StringSplitOptions.None)[1]
-                            .Split('\n')[0]
-                            .Trim());
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientvariable clid={clientId} client_output_muted");
+                    var inputMuteStatusIResponse = Ts3Client.ReadAsync().Result;
+
+                    if (inputMuteStatusIResponse.Contains("msg=ok"))
+                        return int.Parse(
+                            inputMuteStatusIResponse.Split(new[] {"client_output_muted="}, StringSplitOptions.None)[1]
+                                .Split('\n')[0]
+                                .Trim());
                 
-                retries++;
-                await Task.Delay(10);
-            }
+                    retries++;
+                }
 
-            return -1;
+                return -1;
+            }
         }
 
-        public static async Task<bool> SetOutputMuteStatus(Client telnetClient, int outputMuteStatus)
+        public static bool SetOutputMuteStatus(int outputMuteStatus)
         {
-            if (!telnetClient.IsConnected) return false;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientupdate client_output_muted={outputMuteStatus}");
-                var setInputMuteStatusResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return false;
 
-                if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientupdate client_output_muted={outputMuteStatus}");
+                    var setInputMuteStatusResponse = Ts3Client.ReadAsync().Result;
 
-                retries++;
-                await Task.Delay(10);
+                    if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+
+                    retries++;
+                }
+
+                return false;
             }
-
-            return false;
         }
 
 #endregion
 
 #region Away Stuff
 
-        public static async Task<bool> SetAwayStatus(Client telnetClient, int status)
+        public static bool SetAwayStatus(int status)
         {
-            if (!telnetClient.IsConnected) return false;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientupdate client_away={status}");
-                var changeNicknameResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return false;
 
-                if (changeNicknameResponse.Contains("msg=ok")) return true;
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientupdate client_away={status}");
+                    var changeNicknameResponse = Ts3Client.ReadAsync().Result;
 
-                retries++;
-                await Task.Delay(10);
+                    if (changeNicknameResponse.Contains("msg=ok")) return true;
+
+                    retries++;
+                }
+
+                return false;
             }
-
-            return false;
         }
 
-        public static async Task<int> GetAwayStatus(Client telnetClient, int clientId)
+        public static int GetAwayStatus(int clientId)
         {
-            if (!telnetClient.IsConnected) return -1;
-
-            var retries = 0;
-            while (retries < 10)
+            lock (_TS3_CLIENT_LOCK_OBJ)
             {
-                await telnetClient.WriteLine($"clientvariable clid={clientId} client_away");
-                var awayStatusResponse = await telnetClient.ReadAsync();
+                if (!Ts3Client.IsConnected) return -1;
 
-                if (awayStatusResponse.Contains("msg=ok"))
-                    return int.Parse(
-                        awayStatusResponse.Split(new[] {"client_away="}, StringSplitOptions.None)[1]
-                            .Split('\n')[0]
-                            .Trim());
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientvariable clid={clientId} client_away");
+                    var awayStatusResponse = Ts3Client.ReadAsync().Result;
 
-                retries++;
-                await Task.Delay(10);
-                await Task.Delay(10);
+                    if (awayStatusResponse.Contains("msg=ok"))
+                        return int.Parse(
+                            awayStatusResponse.Split(new[] {"client_away="}, StringSplitOptions.None)[1]
+                                .Split('\n')[0]
+                                .Trim());
+
+                    retries++;
+                }
+
+                return -1;
             }
-
-            return -1;
         }
 
-        public static async Task<bool> SetAwayMessage(Client telnetClient, string statusMessage)
+        public static bool SetAwayMessage(string statusMessage)
         {
-            if (!telnetClient.IsConnected) return false;
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!Ts3Client.IsConnected) return false;
             
-            var retries = 0;
-            while (retries < 10)
-            {
-                await telnetClient.WriteLine($"clientupdate client_away_message={statusMessage}");
-                var changeNicknameResponse = await telnetClient.ReadAsync();
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientupdate client_away_message={statusMessage}");
+                    var changeNicknameResponse = Ts3Client.ReadAsync().Result;
 
-                if (changeNicknameResponse.Contains("msg=ok")) return true;
+                    if (changeNicknameResponse.Contains("msg=ok")) return true;
 
-                retries++;
-                await Task.Delay(10);
+                    retries++;
+                }
+
+                return false;
             }
-
-            return false;
         }
 
 #endregion

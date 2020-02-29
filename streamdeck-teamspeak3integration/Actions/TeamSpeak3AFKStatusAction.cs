@@ -6,8 +6,6 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using PrimS.Telnet;
-
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
 
@@ -33,7 +31,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override void Dispose()
         {
-            _telnetclient?.Dispose();
+            TeamSpeak3Telnet.Ts3Client?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
@@ -44,21 +42,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
             try
             {
-                if (_telnetclient == null || !_telnetclient.IsConnected)
+                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
                 {
-                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (_telnetclient == null) return;
+                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (TeamSpeak3Telnet.Ts3Client == null) return;
                 }
 
                 if (payload.IsInMultiAction)
-                    await ToggleAwayStatus(_telnetclient, (int) payload.UserDesiredState);
+                    await ToggleAwayStatus((int) payload.UserDesiredState);
                 else
-                    await ToggleAwayStatus(_telnetclient);
+                    await ToggleAwayStatus();
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetAwayStatusState();
             }
         }
@@ -71,21 +69,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             try
             {
-                if (_telnetclient == null || !_telnetclient.IsConnected)
+                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
                 {
-                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (_telnetclient == null) return;
+                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (TeamSpeak3Telnet.Ts3Client == null) return;
                 }
 
-                var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
+                var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    _telnetclient?.Dispose();
-                    _telnetclient = null;
+                    TeamSpeak3Telnet.Ts3Client?.Dispose();
+                    TeamSpeak3Telnet.Ts3Client = null;
                     return;
                 }
 
-                var awayStatus = await TeamSpeak3Telnet.GetAwayStatus(_telnetclient, clientId);
+                var awayStatus = TeamSpeak3Telnet.GetAwayStatus(clientId);
                 if (awayStatus == _savedSatus)
                 {
                     await SetAwayStatusState(awayStatus);
@@ -108,8 +106,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetAwayStatusState();
             }
         }
@@ -148,7 +146,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         private readonly PluginSettings _settings;
         private int _savedSatus;
-        private Client _telnetclient;
 
 #endregion
 
@@ -166,21 +163,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleAwayStatus(Client telnetClient, int desiredState = -1)
+        private async Task ToggleAwayStatus(int desiredState = -1)
         {
             try
             {
-                var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
+                var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    _telnetclient?.Dispose();
-                    _telnetclient = null;
+                    TeamSpeak3Telnet.Ts3Client?.Dispose();
+                    TeamSpeak3Telnet.Ts3Client = null;
                     return;
                 }
 
                 int awayStatus;
                 if (desiredState == -1)
-                    awayStatus = await TeamSpeak3Telnet.GetAwayStatus(telnetClient, clientId);
+                    awayStatus = TeamSpeak3Telnet.GetAwayStatus(clientId);
                 else
                     awayStatus = desiredState == 1 ? 0 : 1;
 
@@ -190,16 +187,16 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, 1);
-                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 1);
-                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, 1);
+                        TeamSpeak3Telnet.SetInputMuteStatus(1);
+                        TeamSpeak3Telnet.SetOutputMuteStatus(1);
+                        setAwayStatus = TeamSpeak3Telnet.SetAwayStatus(1);
                         if (_settings.AwayStatusMessage.Length > 0)
-                            await TeamSpeak3Telnet.SetAwayMessage(telnetClient, _settings.AwayStatusMessage);
+                            TeamSpeak3Telnet.SetAwayMessage(_settings.AwayStatusMessage);
                         break;
                     case 1:
-                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, 0);
-                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 0);
-                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, 0);
+                        TeamSpeak3Telnet.SetInputMuteStatus(0);
+                        TeamSpeak3Telnet.SetOutputMuteStatus(0);
+                        setAwayStatus = TeamSpeak3Telnet.SetAwayStatus(0);
                         break;
                 }
 
@@ -207,8 +204,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetAwayStatusState();
             }
         }

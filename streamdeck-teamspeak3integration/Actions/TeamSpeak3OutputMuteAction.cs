@@ -6,8 +6,6 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using PrimS.Telnet;
-
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
 
@@ -33,7 +31,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override void Dispose()
         {
-            _telnetclient?.Dispose();
+            TeamSpeak3Telnet.Ts3Client?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
@@ -44,21 +42,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
             try
             {
-                if (_telnetclient == null || !_telnetclient.IsConnected)
+                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
                 {
-                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (_telnetclient == null) return;
+                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (TeamSpeak3Telnet.Ts3Client == null) return;
                 }
 
                 if (payload.IsInMultiAction)
-                    await ToggleOutputMute(_telnetclient, (int) payload.UserDesiredState);
+                    await ToggleOutputMute((int) payload.UserDesiredState);
                 else
-                    await ToggleOutputMute(_telnetclient);
+                    await ToggleOutputMute();
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetOutputStatusState();
             }
         }
@@ -71,21 +69,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             try
             {
-                if (_telnetclient == null || !_telnetclient.IsConnected)
+                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
                 {
-                    _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (_telnetclient == null) return;
+                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (TeamSpeak3Telnet.Ts3Client == null) return;
                 }
 
-                var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
+                var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    _telnetclient?.Dispose();
-                    _telnetclient = null;
+                    TeamSpeak3Telnet.Ts3Client?.Dispose();
+                    TeamSpeak3Telnet.Ts3Client = null;
                     return;
                 }
 
-                var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(_telnetclient, clientId);
+                var outputMuteStatus = TeamSpeak3Telnet.GetOutputMuteStatus(clientId);
                 if (outputMuteStatus == _savedSatus)
                 {
                     await SetOutputStatusState(outputMuteStatus);
@@ -108,8 +106,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetOutputStatusState();
             }
         }
@@ -144,7 +142,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         private readonly PluginSettings _settings;
         private int _savedSatus;
-        private Client _telnetclient;
 
 #endregion
 
@@ -162,21 +159,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleOutputMute(Client telnetClient, int desiredState = -1)
+        private async Task ToggleOutputMute(int desiredState = -1)
         {
             try
             {
-                var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
+                var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    _telnetclient?.Dispose();
-                    _telnetclient = null;
+                    TeamSpeak3Telnet.Ts3Client?.Dispose();
+                    TeamSpeak3Telnet.Ts3Client = null;
                     return;
                 }
 
                 int outputMuteStatus;
                 if (desiredState == -1)
-                    outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(telnetClient, clientId);
+                    outputMuteStatus = TeamSpeak3Telnet.GetOutputMuteStatus(clientId);
                 else
                     outputMuteStatus = desiredState == 1 ? 0 : 1;
 
@@ -186,10 +183,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 1);
+                        setOutputMuteStatus = TeamSpeak3Telnet.SetOutputMuteStatus(1);
                         break;
                     case 1:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 0);
+                        setOutputMuteStatus = TeamSpeak3Telnet.SetOutputMuteStatus(0);
                         break;
                 }
 
@@ -197,8 +194,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
                 await SetOutputStatusState();
             }
         }

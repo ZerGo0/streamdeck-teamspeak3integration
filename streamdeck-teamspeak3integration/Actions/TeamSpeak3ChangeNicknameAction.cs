@@ -34,7 +34,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override void Dispose()
         {
-            _telnetclient?.Dispose();
+            TeamSpeak3Telnet.Ts3Client?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
@@ -43,13 +43,13 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "Key Pressed");
 
-            if (_telnetclient == null || !_telnetclient.IsConnected)
+            if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
             {
-                _telnetclient = await TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                if (_telnetclient == null) return;
+                TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                if (TeamSpeak3Telnet.Ts3Client == null) return;
             }
 
-            await ChangeNickname(_telnetclient);
+            ChangeNickname();
         }
 
         public override void KeyReleased(KeyPayload payload)
@@ -93,7 +93,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 #region Private Members
 
         private readonly PluginSettings _settings;
-        private Client _telnetclient;
 
 #endregion
 
@@ -111,24 +110,24 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ChangeNickname(Client telnetClient)
+        private void ChangeNickname()
         {
             try
             {
-                var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
+                var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    _telnetclient?.Dispose();
-                    _telnetclient = null;
+                    TeamSpeak3Telnet.Ts3Client?.Dispose();
+                    TeamSpeak3Telnet.Ts3Client = null;
                     return;
                 }
 
-                await TeamSpeak3Telnet.ChangeNickname(_telnetclient, _settings.NickName);
+                TeamSpeak3Telnet.ChangeNickname(_settings.NickName);
             }
             catch (Exception)
             {
-                _telnetclient?.Dispose();
-                _telnetclient = null;
+                TeamSpeak3Telnet.Ts3Client?.Dispose();
+                TeamSpeak3Telnet.Ts3Client = null;
             }
         }
 
