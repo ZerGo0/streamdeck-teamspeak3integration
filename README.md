@@ -35,7 +35,7 @@ You need to have the [ClientQuery plugin](https://www.myteamspeak.com/addons/943
 * [Download plugin](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/)
 
 ## Possible improvements
-~~- 1 Telnet Client/Connection for all actions (definitely needed for more actions in the future, the TS3 Client can't handle too many connections)~~ ✔️ Done
+- ~~1 Telnet Client/Connection for all actions (definitely needed for more actions in the future, the TS3 Client can't handle too many connections)~~ ✔️ Done
 - ClientQuery API-Key shared across all actions
 
 ## I found a bug, who do I contact?
