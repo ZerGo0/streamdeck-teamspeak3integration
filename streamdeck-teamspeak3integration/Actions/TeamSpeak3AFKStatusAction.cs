@@ -78,9 +78,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 }
 
                 var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
-                if (clientId == null)
+                if (clientId == -1)
                 {
                     _telnetclient?.Dispose();
+                    _telnetclient = null;
                     return;
                 }
 
@@ -170,9 +171,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             try
             {
                 var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
-                if (clientId == null)
+                if (clientId == -1)
                 {
                     _telnetclient?.Dispose();
+                    _telnetclient = null;
                     return;
                 }
 
@@ -188,16 +190,16 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "1");
-                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "1");
-                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "1");
+                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, 1);
+                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 1);
+                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, 1);
                         if (_settings.AwayStatusMessage.Length > 0)
                             await TeamSpeak3Telnet.SetAwayMessage(telnetClient, _settings.AwayStatusMessage);
                         break;
                     case 1:
-                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, "0");
-                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "0");
-                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, "0");
+                        await TeamSpeak3Telnet.SetInputMuteStatus(telnetClient, 0);
+                        await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 0);
+                        setAwayStatus = await TeamSpeak3Telnet.SetAwayStatus(telnetClient, 0);
                         break;
                 }
 

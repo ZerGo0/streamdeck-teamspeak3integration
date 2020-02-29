@@ -84,7 +84,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions\TeamSpeak3AFKStatusAction.cs"/>
+    <Compile Include="Actions\TeamSpeak3AFKStatusAction.cs" />
     <Compile Include="Actions\TeamSpeak3AwayStatusAction.cs" />
     <Compile Include="Actions\TeamSpeak3ChangeNicknameAction.cs" />
     <Compile Include="Actions\TeamSpeak3OutputMuteAction.cs" />

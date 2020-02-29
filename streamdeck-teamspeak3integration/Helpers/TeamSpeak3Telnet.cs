@@ -51,20 +51,28 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             return useResponse.Contains("msg=ok");
         }
 
-        public static async Task<string> GetClientId(Client telnetClient)
+        public static async Task<int> GetClientId(Client telnetClient)
         {
-            if (!await SelectCurrentServer(telnetClient)) return null;
+            if (!await SelectCurrentServer(telnetClient)) return -1;
 
-            if (!telnetClient.IsConnected) return null;
-            await telnetClient.WriteLine("whoami");
-            var whoAmIResponse = await telnetClient.ReadAsync();
+            if (!telnetClient.IsConnected) return -1;
 
-            if (whoAmIResponse.Contains("msg=ok"))
-                return whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
-                    .Split(' ')[0]
-                    .Trim();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine("whoami");
+                var whoAmIResponse = await telnetClient.ReadAsync();
 
-            return null;
+                if (whoAmIResponse.Contains("msg=ok"))
+                    return int.Parse(whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
+                        .Split(' ')[0]
+                        .Trim());
+
+                retries++;
+                await Task.Delay(10);
+            }
+
+            return -1;
         }
 
 #region Nickname Stuff
@@ -83,88 +91,138 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
 #region Input Stuff
 
-        public static async Task<int> GetInputMuteStatus(Client telnetClient, string clientId)
+        public static async Task<int> GetInputMuteStatus(Client telnetClient, int clientId)
         {
             if (!telnetClient.IsConnected) return -1;
+            
 
-            await telnetClient.WriteLine($"clientvariable clid={clientId} client_input_muted");
-            var inputMuteStatusIResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientvariable clid={clientId} client_input_muted");
+                var inputMuteStatusIResponse = await telnetClient.ReadAsync();
 
-            if (inputMuteStatusIResponse.Contains("msg=ok"))
-                return int.Parse(
-                    inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
-                        .Split('\n')[0]
-                        .Trim());
+                if (inputMuteStatusIResponse.Contains("msg=ok"))
+                    return int.Parse(
+                        inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
+                            .Split('\n')[0]
+                            .Trim());
+
+                retries++;
+                await Task.Delay(10);
+            }
 
             return -1;
         }
 
-        public static async Task<bool> SetInputMuteStatus(Client telnetClient, string inputMuteStatus)
+        public static async Task<bool> SetInputMuteStatus(Client telnetClient, int inputMuteStatus)
         {
             if (!telnetClient.IsConnected) return false;
 
-            await telnetClient.WriteLine($"clientupdate client_input_muted={inputMuteStatus}");
-            var setInputMuteStatusResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientupdate client_input_muted={inputMuteStatus}");
+                var setInputMuteStatusResponse = await telnetClient.ReadAsync();
 
-            return setInputMuteStatusResponse.Contains("msg=ok");
+                if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+
+                retries++;
+                await Task.Delay(10);
+            }
+
+            return false;
         }
 
 #endregion
 
 #region Output Stuff
 
-        public static async Task<int> GetOutputMuteStatus(Client telnetClient, string clientId)
+        public static async Task<int> GetOutputMuteStatus(Client telnetClient, int clientId)
         {
             if (!telnetClient.IsConnected) return -1;
 
-            await telnetClient.WriteLine($"clientvariable clid={clientId} client_output_muted");
-            var inputMuteStatusIResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientvariable clid={clientId} client_output_muted");
+                var inputMuteStatusIResponse = await telnetClient.ReadAsync();
 
-            if (inputMuteStatusIResponse.Contains("msg=ok"))
-                return int.Parse(
-                    inputMuteStatusIResponse.Split(new[] {"client_output_muted="}, StringSplitOptions.None)[1]
-                        .Split('\n')[0]
-                        .Trim());
+                if (inputMuteStatusIResponse.Contains("msg=ok"))
+                    return int.Parse(
+                        inputMuteStatusIResponse.Split(new[] {"client_output_muted="}, StringSplitOptions.None)[1]
+                            .Split('\n')[0]
+                            .Trim());
+                
+                retries++;
+                await Task.Delay(10);
+            }
 
             return -1;
         }
 
-        public static async Task<bool> SetOutputMuteStatus(Client telnetClient, string outputMuteStatus)
+        public static async Task<bool> SetOutputMuteStatus(Client telnetClient, int outputMuteStatus)
         {
             if (!telnetClient.IsConnected) return false;
 
-            await telnetClient.WriteLine($"clientupdate client_output_muted={outputMuteStatus}");
-            var setInputMuteStatusResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientupdate client_output_muted={outputMuteStatus}");
+                var setInputMuteStatusResponse = await telnetClient.ReadAsync();
 
-            return setInputMuteStatusResponse.Contains("msg=ok");
+                if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
+
+                retries++;
+                await Task.Delay(10);
+            }
+
+            return false;
         }
 
 #endregion
 
 #region Away Stuff
 
-        public static async Task<bool> SetAwayStatus(Client telnetClient, string status)
+        public static async Task<bool> SetAwayStatus(Client telnetClient, int status)
         {
             if (!telnetClient.IsConnected) return false;
 
-            await telnetClient.WriteLine($"clientupdate client_away={status}");
-            var changeNicknameResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientupdate client_away={status}");
+                var changeNicknameResponse = await telnetClient.ReadAsync();
 
-            return changeNicknameResponse.Contains("msg=ok");
+                if (changeNicknameResponse.Contains("msg=ok")) return true;
+
+                retries++;
+                await Task.Delay(10);
+            }
+
+            return false;
         }
 
-        public static async Task<int> GetAwayStatus(Client telnetClient, string clientId)
+        public static async Task<int> GetAwayStatus(Client telnetClient, int clientId)
         {
             if (!telnetClient.IsConnected) return -1;
 
-            await telnetClient.WriteLine($"clientvariable clid={clientId} client_away");
-            var awayStatusResponse = await telnetClient.ReadAsync();
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientvariable clid={clientId} client_away");
+                var awayStatusResponse = await telnetClient.ReadAsync();
 
-            if (awayStatusResponse.Contains("msg=ok"))
-                return int.Parse(
-                    awayStatusResponse.Split(new[] {"client_away="}, StringSplitOptions.None)[1]
-                        .Split('\n')[0]
-                        .Trim());
+                if (awayStatusResponse.Contains("msg=ok"))
+                    return int.Parse(
+                        awayStatusResponse.Split(new[] {"client_away="}, StringSplitOptions.None)[1]
+                            .Split('\n')[0]
+                            .Trim());
+
+                retries++;
+                await Task.Delay(10);
+                await Task.Delay(10);
+            }
 
             return -1;
         }
@@ -172,11 +230,20 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
         public static async Task<bool> SetAwayMessage(Client telnetClient, string statusMessage)
         {
             if (!telnetClient.IsConnected) return false;
+            
+            var retries = 0;
+            while (retries < 10)
+            {
+                await telnetClient.WriteLine($"clientupdate client_away_message={statusMessage}");
+                var changeNicknameResponse = await telnetClient.ReadAsync();
 
-            await telnetClient.WriteLine($"clientupdate client_away_message={statusMessage}");
-            var changeNicknameResponse = await telnetClient.ReadAsync();
+                if (changeNicknameResponse.Contains("msg=ok")) return true;
 
-            return changeNicknameResponse.Contains("msg=ok");
+                retries++;
+                await Task.Delay(10);
+            }
+
+            return false;
         }
 
 #endregion

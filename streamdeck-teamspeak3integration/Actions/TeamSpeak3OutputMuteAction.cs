@@ -78,7 +78,12 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 }
 
                 var clientId = await TeamSpeak3Telnet.GetClientId(_telnetclient);
-                if (clientId == null) return;
+                if (clientId == -1)
+                {
+                    _telnetclient?.Dispose();
+                    _telnetclient = null;
+                    return;
+                }
 
                 var outputMuteStatus = await TeamSpeak3Telnet.GetOutputMuteStatus(_telnetclient, clientId);
                 if (outputMuteStatus == _savedSatus)
@@ -162,9 +167,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             try
             {
                 var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
-                if (clientId == null)
+                if (clientId == -1)
                 {
-                    telnetClient.Dispose();
+                    _telnetclient?.Dispose();
+                    _telnetclient = null;
                     return;
                 }
 
@@ -180,10 +186,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     case -1:
                         return;
                     case 0:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "1");
+                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 1);
                         break;
                     case 1:
-                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, "0");
+                        setOutputMuteStatus = await TeamSpeak3Telnet.SetOutputMuteStatus(telnetClient, 0);
                         break;
                 }
 

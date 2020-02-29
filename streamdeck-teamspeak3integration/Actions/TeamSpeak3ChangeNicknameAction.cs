@@ -116,9 +116,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             try
             {
                 var clientId = await TeamSpeak3Telnet.GetClientId(telnetClient);
-                if (clientId == null)
+                if (clientId == -1)
                 {
                     _telnetclient?.Dispose();
+                    _telnetclient = null;
                     return;
                 }
 
