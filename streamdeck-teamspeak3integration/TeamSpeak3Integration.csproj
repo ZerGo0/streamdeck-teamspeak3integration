@@ -87,6 +87,7 @@
     <Compile Include="Actions\TeamSpeak3AFKStatusAction.cs" />
     <Compile Include="Actions\TeamSpeak3AwayStatusAction.cs" />
     <Compile Include="Actions\TeamSpeak3ChangeNicknameAction.cs" />
+    <Compile Include="Actions\TeamSpeak3InputMuteLocallyAction.cs" />
     <Compile Include="Actions\TeamSpeak3OutputMuteAction.cs" />
     <Compile Include="Helpers\TeamSpeak3Telnet.cs" />
     <Compile Include="Program.cs" />
@@ -187,6 +188,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\ToggleAwayStatus\ToggleAwayStatus.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\ToggleInputMuteLocally\ToggleInputMuteLocally.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\ToggleOutputMute\ToggleOutputMute.html">

@@ -102,6 +102,9 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             lock (_TS3_CLIENT_LOCK_OBJ)
             {
                 if (!Ts3Client.IsConnected) return false;
+                
+                if (!string.IsNullOrWhiteSpace(nickname))
+                    nickname = nickname.Replace(" ", "\\s");
 
                 Ts3Client.WriteLine($"clientupdate client_nickname={nickname}");
                 var changeNicknameResponse = Ts3Client.ReadAsync().Result;
@@ -265,6 +268,10 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             lock (_TS3_CLIENT_LOCK_OBJ)
             {
                 if (!Ts3Client.IsConnected) return false;
+                
+
+                if (!string.IsNullOrWhiteSpace(statusMessage))
+                    statusMessage = statusMessage.Replace(" ", "\\s");
             
                 var retries = 0;
                 while (retries < 10)
@@ -273,6 +280,57 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
                     var changeNicknameResponse = Ts3Client.ReadAsync().Result;
 
                     if (changeNicknameResponse.Contains("msg=ok")) return true;
+
+                    retries++;
+                }
+
+                return false;
+            }
+        }
+
+#endregion
+
+#region Input Local Stuff
+
+        //TODO: Check how to actually call this, no public information found sadly, doesn't work currently
+        public static int GetInputMuteStatusLocally(int clientId)
+        {
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!Ts3Client.IsConnected) return -1;
+                
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientvariable clid={clientId} client_input_deactivated");
+                    var inputMuteStatusIResponse = Ts3Client.ReadAsync().Result;
+
+                    if (inputMuteStatusIResponse.Contains("msg=ok"))
+                        return int.Parse(
+                            inputMuteStatusIResponse.Split(new[] {"client_input_deactivated="}, StringSplitOptions.None)[1]
+                                .Split('\n')[0]
+                                .Trim());
+
+                    retries++;
+                }
+
+                return -1;
+            }
+        }
+
+        public static bool SetInputMuteStatusLocally(int inputMuteStatus)
+        {
+            lock (_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!Ts3Client.IsConnected) return false;
+
+                var retries = 0;
+                while (retries < 10)
+                {
+                    Ts3Client.WriteLine($"clientupdate client_input_deactivated={inputMuteStatus}");
+                    var setInputMuteStatusResponse = Ts3Client.ReadAsync().Result;
+
+                    if (setInputMuteStatusResponse.Contains("msg=ok")) return true;
 
                     retries++;
                 }
