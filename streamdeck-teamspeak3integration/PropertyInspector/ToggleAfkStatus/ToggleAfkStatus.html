@@ -12,29 +12,30 @@
     <script src="../TeamSpeak3Integration.js"></script>
 </head>
 <body>
-<div class="sdpi-wrapper">
-    <div class="sdpi-item">
-        <div class="sdpi-item-label">ClientQuery API Key</div>
-        <input class="sdpi-item-value sdProperty" id="apiKey" oninput="setSettings()" placeholder="" value="">
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">ClientQuery API Key</div>
+            <input class="sdpi-item-value sdProperty" id="apiKey" oninput="setSettings()" placeholder="" value="">
+        </div>
+        <details class="message">
+            <summary></summary>
+        </details>
+        <details class="message">
+            <summary>How to get the ClientQuery API Key:</summary>
+        </details>
+        <details class="message">
+            <summary>TS3>Tools>Options>Addons>ClientQuery>Settings</summary>
+        </details>
+        <details class="message">
+            <summary>
+                Detailed Guide with pictures: <span class="linkspan" onclick="openAPISetupGuide()">Here</span>
+            </summary>
+        </details>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Away Status Message</div>
+            <input class="sdpi-item-value sdProperty" id="awayStatusMessage" oninput="setSettings()" placeholder=""
+                   value="">
+        </div>
     </div>
-    <details class="message">
-        <summary></summary>
-    </details>
-    <details class="message">
-        <summary>How to get the ClientQuery API Key:</summary>
-    </details>
-    <details class="message">
-        <summary>TS3>Tools>Options>Addons>ClientQuery>Settings</summary>
-    </details>
-    <details class="message">
-        <summary>Detailed Guide with pictures: <span class="linkspan" onclick="openAPISetupGuide()">Here</span>
-        </summary>
-    </details>
-    <div class="sdpi-item">
-        <div class="sdpi-item-label">Away Status Message</div>
-        <input class="sdpi-item-value sdProperty" id="awayStatusMessage" oninput="setSettings()" placeholder=""
-               value="">
-    </div>
-</div>
 </body>
 </html>

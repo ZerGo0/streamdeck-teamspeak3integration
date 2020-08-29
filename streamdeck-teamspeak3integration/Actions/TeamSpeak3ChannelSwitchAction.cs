@@ -15,10 +15,10 @@ using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
 {
-    [PluginActionId("com.zergo0.teamspeak3integration.toggleinputmute")]
-    public class TeamSpeak3InputMuteAction : PluginBase
+    [PluginActionId("com.zergo0.teamspeak3integration.channelswitch")]
+    public class TeamSpeak3ChannelSwitchAction : PluginBase
     {
-        public TeamSpeak3InputMuteAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public TeamSpeak3ChannelSwitchAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
                 _settings = PluginSettings.CreateDefaultSettings();
@@ -48,16 +48,12 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     if (TeamSpeak3Telnet.TS3_CLIENT == null) return;
                 }
 
-                if (payload.IsInMultiAction)
-                    await ToggleMicMute((int) payload.UserDesiredState);
-                else
-                    await ToggleMicMute();
+                ChannelSwitch();
             }
             catch (Exception)
             {
                 TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
                 TeamSpeak3Telnet.TS3_CLIENT = null;
-                await SetInputStatusState();
             }
         }
 
@@ -67,49 +63,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override async void OnTick()
         {
-            try
-            {
-                if (TeamSpeak3Telnet.TS3_CLIENT == null || !TeamSpeak3Telnet.TS3_CLIENT.IsConnected)
-                {
-                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (TeamSpeak3Telnet.TS3_CLIENT == null) return;
-                }
-
-                var clientId = TeamSpeak3Telnet.GetClientId();
-                if (clientId == -1)
-                {
-                    TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
-                    TeamSpeak3Telnet.TS3_CLIENT = null;
-                    return;
-                }
-
-                var inputMuteStatus = TeamSpeak3Telnet.GetInputMuteStatus(clientId);
-                if (inputMuteStatus == _savedSatus)
-                {
-                    await SetInputStatusState(inputMuteStatus);
-                    return;
-                }
-
-                switch (inputMuteStatus)
-                {
-                    case -1:
-                        return;
-                    case 0:
-                        await SetInputStatusState();
-                        break;
-                    case 1:
-                        await SetInputStatusState(1);
-                        break;
-                }
-
-                _savedSatus = inputMuteStatus;
-            }
-            catch (Exception)
-            {
-                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
-                TeamSpeak3Telnet.TS3_CLIENT = null;
-                await SetInputStatusState();
-            }
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -127,25 +80,28 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             [JsonProperty(PropertyName = "apiKey")]
             public string ApiKey { get; set; }
 
+            [JsonProperty(PropertyName = "channelName")]
+            public string ChannelName { get; set; }
+
             public static PluginSettings CreateDefaultSettings()
             {
                 var instance = new PluginSettings
                 {
-                    ApiKey = string.Empty
+                    ApiKey = string.Empty,
+                    ChannelName = string.Empty
                 };
 
                 return instance;
             }
         }
 
-#region Private Members
+        #region Private Members
 
         private readonly PluginSettings _settings;
-        private int _savedSatus;
 
-#endregion
+        #endregion
 
-#region Private Methods
+        #region Private Methods
 
         private Task SaveSettings()
         {
@@ -159,7 +115,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             if (Connection.ContextId != e.Event.Context) return;
         }
 
-        private async Task ToggleMicMute(int desiredState = -1)
+        private void ChannelSwitch()
         {
             try
             {
@@ -171,48 +127,15 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                     return;
                 }
 
-                int outputMuteStatus;
-                if (desiredState == -1)
-                    outputMuteStatus = TeamSpeak3Telnet.GetInputMuteStatus(clientId);
-                else
-                    outputMuteStatus = desiredState == 1 ? 0 : 1;
-
-                var setOutputMuteStatus = false;
-                switch (outputMuteStatus)
-                {
-                    case -1:
-                        return;
-                    case 0:
-                        setOutputMuteStatus = TeamSpeak3Telnet.SetInputMuteStatus(1);
-                        break;
-                    case 1:
-                        setOutputMuteStatus = TeamSpeak3Telnet.SetInputMuteStatus(0);
-                        break;
-                }
-
-                if (!setOutputMuteStatus) return;
+                TeamSpeak3Telnet.ChannelSwitch(_settings.ChannelName, clientId);
             }
             catch (Exception)
             {
                 TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
                 TeamSpeak3Telnet.TS3_CLIENT = null;
-                await SetInputStatusState();
             }
         }
 
-        private async Task SetInputStatusState(int muted = 0)
-        {
-            switch (muted)
-            {
-                case 0:
-                    await Connection.SetStateAsync(0);
-                    break;
-                case 1:
-                    await Connection.SetStateAsync(1);
-                    break;
-            }
-        }
-
-#endregion
+        #endregion
     }
 }

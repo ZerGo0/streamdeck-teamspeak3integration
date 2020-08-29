@@ -7,10 +7,10 @@ var websocket = null,
 	runningApps = [],
 	isQT = navigator.appVersion.includes("QtWebEngine");
 
-function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, inActionInfo) {
-	uuid = inUUID;
+function connectElgatoStreamDeckSocket(inPort, inUuid, inRegisterEvent, inInfo, inActionInfo) {
+	uuid = inUuid;
 	registerEventName = inRegisterEvent;
-	console.log(inUUID, inActionInfo);
+	console.log(inUuid, inActionInfo);
 	actionInfo = JSON.parse(inActionInfo); // cache the info
 	inInfo = JSON.parse(inInfo);
 	websocket = new WebSocket("ws://127.0.0.1:" + inPort);

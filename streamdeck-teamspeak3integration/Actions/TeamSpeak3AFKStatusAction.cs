@@ -31,7 +31,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override void Dispose()
         {
-            TeamSpeak3Telnet.Ts3Client?.Dispose();
+            TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
@@ -42,10 +42,10 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
             try
             {
-                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
+                if (TeamSpeak3Telnet.TS3_CLIENT == null || !TeamSpeak3Telnet.TS3_CLIENT.IsConnected)
                 {
                     TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (TeamSpeak3Telnet.Ts3Client == null) return;
+                    if (TeamSpeak3Telnet.TS3_CLIENT == null) return;
                 }
 
                 if (payload.IsInMultiAction)
@@ -55,8 +55,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                TeamSpeak3Telnet.Ts3Client?.Dispose();
-                TeamSpeak3Telnet.Ts3Client = null;
+                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                TeamSpeak3Telnet.TS3_CLIENT = null;
                 await SetAwayStatusState();
             }
         }
@@ -69,17 +69,17 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             try
             {
-                if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
+                if (TeamSpeak3Telnet.TS3_CLIENT == null || !TeamSpeak3Telnet.TS3_CLIENT.IsConnected)
                 {
                     TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                    if (TeamSpeak3Telnet.Ts3Client == null) return;
+                    if (TeamSpeak3Telnet.TS3_CLIENT == null) return;
                 }
 
                 var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    TeamSpeak3Telnet.Ts3Client?.Dispose();
-                    TeamSpeak3Telnet.Ts3Client = null;
+                    TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                    TeamSpeak3Telnet.TS3_CLIENT = null;
                     return;
                 }
 
@@ -106,8 +106,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                TeamSpeak3Telnet.Ts3Client?.Dispose();
-                TeamSpeak3Telnet.Ts3Client = null;
+                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                TeamSpeak3Telnet.TS3_CLIENT = null;
                 await SetAwayStatusState();
             }
         }
@@ -170,8 +170,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    TeamSpeak3Telnet.Ts3Client?.Dispose();
-                    TeamSpeak3Telnet.Ts3Client = null;
+                    TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                    TeamSpeak3Telnet.TS3_CLIENT = null;
                     return;
                 }
 
@@ -204,8 +204,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                TeamSpeak3Telnet.Ts3Client?.Dispose();
-                TeamSpeak3Telnet.Ts3Client = null;
+                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                TeamSpeak3Telnet.TS3_CLIENT = null;
                 await SetAwayStatusState();
             }
         }

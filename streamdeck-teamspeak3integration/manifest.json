@@ -136,6 +136,23 @@
       "Tooltip": "Change your Nickname on TeamSpeak 3 via ClientQuery",
       "UUID": "com.zergo0.teamspeak3integration.changenickname",
       "PropertyInspectorPath": "PropertyInspector/ChangeNickname/ChangeNickname.html"
+    },
+    {
+      "Icon": "Images/ChannelSwitch",
+      "Name": "Switch Channel",
+      "States": [
+        {
+          "Image": "Images/ChannelSwitch",
+          "TitleAlignment": "bottom",
+          "FontSize": "9",
+          "Title": "TeamSpeak\nSwitch Channel",
+          "Name": "Switch Channel"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change your channel on TeamSpeak 3 via ClientQuery",
+      "UUID": "com.zergo0.teamspeak3integration.channelswitch",
+      "PropertyInspectorPath": "PropertyInspector/ChannelSwitch/ChannelSwitch.html"
     }
   ],
   "Author": "ZerGo0",
@@ -143,7 +160,7 @@
   "Name": "TeamSpeak 3 Integration",
   "Icon": "Images/pluginIcon",
   "URL": "https://github.com/ZerGo0",
-  "Version": "1.5",
+  "Version": "1.6",
   "CodePath": "com.zergo0.teamspeak3integration",
   "Category": "[ZerGo0] TeamSpeak 3 Integration",
   "CategoryIcon": "Images/categoryIcon",

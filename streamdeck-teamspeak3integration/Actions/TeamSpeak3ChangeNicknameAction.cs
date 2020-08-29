@@ -34,7 +34,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
 
         public override void Dispose()
         {
-            TeamSpeak3Telnet.Ts3Client?.Dispose();
+            TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
             Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
@@ -43,13 +43,21 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "Key Pressed");
 
-            if (TeamSpeak3Telnet.Ts3Client == null || !TeamSpeak3Telnet.Ts3Client.IsConnected)
+            try
             {
-                TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
-                if (TeamSpeak3Telnet.Ts3Client == null) return;
-            }
+                if (TeamSpeak3Telnet.TS3_CLIENT == null || !TeamSpeak3Telnet.TS3_CLIENT.IsConnected)
+                {
+                    TeamSpeak3Telnet.SetupTelnetClient(_settings.ApiKey);
+                    if (TeamSpeak3Telnet.TS3_CLIENT == null) return;
+                }
 
-            ChangeNickname();
+                ChangeNickname();
+            }
+            catch (Exception)
+            {
+                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                TeamSpeak3Telnet.TS3_CLIENT = null;
+            }
         }
 
         public override void KeyReleased(KeyPayload payload)
@@ -117,8 +125,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 var clientId = TeamSpeak3Telnet.GetClientId();
                 if (clientId == -1)
                 {
-                    TeamSpeak3Telnet.Ts3Client?.Dispose();
-                    TeamSpeak3Telnet.Ts3Client = null;
+                    TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                    TeamSpeak3Telnet.TS3_CLIENT = null;
                     return;
                 }
 
@@ -126,8 +134,8 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
             catch (Exception)
             {
-                TeamSpeak3Telnet.Ts3Client?.Dispose();
-                TeamSpeak3Telnet.Ts3Client = null;
+                TeamSpeak3Telnet.TS3_CLIENT?.Dispose();
+                TeamSpeak3Telnet.TS3_CLIENT = null;
             }
         }
 
