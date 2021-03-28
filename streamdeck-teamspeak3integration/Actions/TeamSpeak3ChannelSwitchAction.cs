@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-
 using BarRaider.SdTools;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
-
 using ZerGo0.TeamSpeak3Integration.Helpers;
-
 using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
@@ -18,7 +13,14 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
     [PluginActionId("com.zergo0.teamspeak3integration.channelswitch")]
     public class TeamSpeak3ChannelSwitchAction : PluginBase
     {
-        public TeamSpeak3ChannelSwitchAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        #region Private Members
+
+        private readonly PluginSettings _settings;
+
+        #endregion
+
+        public TeamSpeak3ChannelSwitchAction(SDConnection connection, InitialPayload payload) : base(connection,
+            payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
                 _settings = PluginSettings.CreateDefaultSettings();
@@ -94,12 +96,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
                 return instance;
             }
         }
-
-        #region Private Members
-
-        private readonly PluginSettings _settings;
-
-        #endregion
 
         #region Private Methods
 

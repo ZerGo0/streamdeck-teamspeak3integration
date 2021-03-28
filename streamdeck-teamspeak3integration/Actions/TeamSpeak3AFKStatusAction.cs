@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-
 using BarRaider.SdTools;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
-
 using ZerGo0.TeamSpeak3Integration.Helpers;
-
 using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
@@ -142,14 +137,14 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
         }
 
-#region Private Members
+        #region Private Members
 
         private readonly PluginSettings _settings;
         private int _savedSatus;
 
-#endregion
+        #endregion
 
-#region Private Methods
+        #region Private Methods
 
         private Task SaveSettings()
         {
@@ -223,6 +218,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
         }
 
-#endregion
+        #endregion
     }
 }

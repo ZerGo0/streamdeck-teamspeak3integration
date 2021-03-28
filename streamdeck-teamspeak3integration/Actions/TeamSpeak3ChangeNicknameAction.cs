@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-
 using BarRaider.SdTools;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
-using PrimS.Telnet;
-
 using streamdeck_client_csharp;
 using streamdeck_client_csharp.Events;
-
 using ZerGo0.TeamSpeak3Integration.Helpers;
-
 using KeyPayload = BarRaider.SdTools.KeyPayload;
 
 namespace ZerGo0.TeamSpeak3Integration.Actions
@@ -20,6 +13,12 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
     [PluginActionId("com.zergo0.teamspeak3integration.changenickname")]
     public class TeamSpeak3ChangeNicknameAction : PluginBase
     {
+        #region Private Members
+
+        private readonly PluginSettings _settings;
+
+        #endregion
+
         public TeamSpeak3ChangeNicknameAction(SDConnection connection, InitialPayload payload) : base(connection,
             payload)
         {
@@ -98,13 +97,7 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
         }
 
-#region Private Members
-
-        private readonly PluginSettings _settings;
-
-#endregion
-
-#region Private Methods
+        #region Private Methods
 
         private Task SaveSettings()
         {
@@ -139,6 +132,6 @@ namespace ZerGo0.TeamSpeak3Integration.Actions
             }
         }
 
-#endregion
+        #endregion
     }
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-
 using PrimS.Telnet;
 
 namespace ZerGo0.TeamSpeak3Integration.Helpers
@@ -11,6 +10,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
     {
         public static Client TS3_CLIENT;
         private static readonly object ro_TS3_CLIENT_LOCK_OBJ = new object();
+
         public static void SetupTelnetClient(string apiKey)
         {
             lock (ro_TS3_CLIENT_LOCK_OBJ)
@@ -34,7 +34,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
                 }
 
                 var welcomeMessage = TS3_CLIENT.ReadAsync().Result;
-                if (!welcomeMessage.Contains("TS3 Client")) 
+                if (!welcomeMessage.Contains("TS3 Client"))
                 {
                     TS3_CLIENT = null;
                     return;
@@ -85,7 +85,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
                     var whoAmIResponse = TS3_CLIENT.ReadAsync().Result;
 
                     if (whoAmIResponse.Contains("msg=ok"))
-                        return int.Parse(whoAmIResponse.Split(new[] {"clid="}, StringSplitOptions.None)[1]
+                        return int.Parse(whoAmIResponse.Split(new[] { "clid=" }, StringSplitOptions.None)[1]
                             .Split(' ')[0]
                             .Trim());
 
@@ -96,14 +96,16 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
-        private static string Substring(this string @this, string from = null, string until = null, StringComparison comparison = StringComparison.InvariantCulture)
+        private static string Substring(this string @this, string from = null, string until = null,
+            StringComparison comparison = StringComparison.InvariantCulture)
         {
             var fromLength = (from ?? string.Empty).Length;
             var startIndex = !string.IsNullOrEmpty(from)
                 ? @this.IndexOf(from, comparison) + fromLength
                 : 0;
 
-            if (startIndex < fromLength) throw new ArgumentException("from: Failed to find an instance of the first anchor");
+            if (startIndex < fromLength)
+                throw new ArgumentException("from: Failed to find an instance of the first anchor");
 
             var endIndex = !string.IsNullOrEmpty(until)
                 ? @this.IndexOf(until, startIndex, comparison)
@@ -123,6 +125,27 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
             return fixedString;
         }
+
+        #region Nickname Stuff
+
+        public static bool ChangeNickname(string nickname)
+        {
+            lock (ro_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!TS3_CLIENT.IsConnected) return false;
+
+                if (string.IsNullOrWhiteSpace(nickname)) return false;
+
+                nickname = nickname.FixTs3SpecificChars();
+
+                TS3_CLIENT.WriteLine($"clientupdate client_nickname={nickname}");
+                var changeNicknameResponse = TS3_CLIENT.ReadAsync().Result;
+
+                return changeNicknameResponse.Contains("msg=ok");
+            }
+        }
+
+        #endregion
 
         #region Channel Stuff
 
@@ -144,6 +167,8 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
                 var channel = channelListArray.FirstOrDefault(tempChannel =>
                     tempChannel.Substring("channel_name=", " channel")
+                        .FixTs3SpecificChars().Contains(channelName) ||
+                    tempChannel.Substring("cid=", " pid")
                         .FixTs3SpecificChars().Contains(channelName));
 
                 if (string.IsNullOrWhiteSpace(channel)) return false;
@@ -174,28 +199,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
         #endregion
 
-#region Nickname Stuff
-
-        public static bool ChangeNickname(string nickname)
-        {
-            lock (ro_TS3_CLIENT_LOCK_OBJ)
-            {
-                if (!TS3_CLIENT.IsConnected) return false;
-
-                if (string.IsNullOrWhiteSpace(nickname)) return false;
-
-                nickname = nickname.FixTs3SpecificChars();
-
-                TS3_CLIENT.WriteLine($"clientupdate client_nickname={nickname}");
-                var changeNicknameResponse = TS3_CLIENT.ReadAsync().Result;
-
-                return changeNicknameResponse.Contains("msg=ok");
-            }
-        }
-
-#endregion
-
-#region Input Stuff
+        #region Input Stuff
 
         public static int GetInputMuteStatus(int clientId)
         {
@@ -211,7 +215,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
                     if (inputMuteStatusIResponse.Contains("msg=ok"))
                         return int.Parse(
-                            inputMuteStatusIResponse.Split(new[] {"client_input_muted="}, StringSplitOptions.None)[1]
+                            inputMuteStatusIResponse.Split(new[] { "client_input_muted=" }, StringSplitOptions.None)[1]
                                 .Split('\n')[0]
                                 .Trim());
 
@@ -243,9 +247,9 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
-#endregion
+        #endregion
 
-#region Output Stuff
+        #region Output Stuff
 
         public static int GetOutputMuteStatus(int clientId)
         {
@@ -261,10 +265,10 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
                     if (inputMuteStatusIResponse.Contains("msg=ok"))
                         return int.Parse(
-                            inputMuteStatusIResponse.Split(new[] {"client_output_muted="}, StringSplitOptions.None)[1]
+                            inputMuteStatusIResponse.Split(new[] { "client_output_muted=" }, StringSplitOptions.None)[1]
                                 .Split('\n')[0]
                                 .Trim());
-                
+
                     retries++;
                 }
 
@@ -293,9 +297,9 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
-#endregion
+        #endregion
 
-#region Away Stuff
+        #region Away Stuff
 
         public static bool SetAwayStatus(int status)
         {
@@ -332,7 +336,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
                     if (awayStatusResponse.Contains("msg=ok"))
                         return int.Parse(
-                            awayStatusResponse.Split(new[] {"client_away="}, StringSplitOptions.None)[1]
+                            awayStatusResponse.Split(new[] { "client_away=" }, StringSplitOptions.None)[1]
                                 .Split('\n')[0]
                                 .Trim());
 
@@ -367,9 +371,9 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
-#endregion
+        #endregion
 
-#region Input Local Stuff
+        #region Input Local Stuff
 
         //TODO: Check how to actually call this, no public information found sadly, doesn't work currently
         public static int GetInputMuteStatusLocally(int clientId)
@@ -377,7 +381,7 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             lock (ro_TS3_CLIENT_LOCK_OBJ)
             {
                 if (!TS3_CLIENT.IsConnected) return -1;
-                
+
                 var retries = 0;
                 while (retries < 10)
                 {
@@ -386,7 +390,8 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
 
                     if (inputMuteStatusIResponse.Contains("msg=ok"))
                         return int.Parse(
-                            inputMuteStatusIResponse.Split(new[] {"client_input_deactivated="}, StringSplitOptions.None)[1]
+                            inputMuteStatusIResponse.Split(new[] { "client_input_deactivated=" },
+                                    StringSplitOptions.None)[1]
                                 .Split('\n')[0]
                                 .Trim());
 
@@ -418,6 +423,6 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
-#endregion
+        #endregion
     }
 }
