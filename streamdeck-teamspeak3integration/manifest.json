@@ -160,7 +160,7 @@
   "Name": "TeamSpeak 3 Integration",
   "Icon": "Images/pluginIcon",
   "URL": "https://github.com/ZerGo0",
-  "Version": "1.6",
+  "Version": "1.7",
   "CodePath": "com.zergo0.teamspeak3integration",
   "Category": "[ZerGo0] TeamSpeak 3 Integration",
   "CategoryIcon": "Images/categoryIcon",
