@@ -322,6 +322,169 @@ namespace ZerGo0.TeamSpeak3Integration.Helpers
             }
         }
 
+        public static bool SetGlobalAwayStatus(int status)
+        {
+            lock (ro_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!TS3_CLIENT.IsConnected) return false;
+
+                var retries = 0;
+                while (retries < 10)
+                {
+                    bool run_succesfull = true;
+                    TS3_CLIENT.WriteLine($"serverconnectionhandlerlist");
+                    var connectionHanderList = TS3_CLIENT.ReadAsync().Result.Split('\n')[0];
+
+                    if(connectionHanderList.Contains('|')) {
+                        foreach (var connectionHander in connectionHanderList.Split('|'))
+                        {
+                            TS3_CLIENT.WriteLine($"use {connectionHandler}");
+                            var changeConnectionHandlerResponse = TS3_CLIENT.ReadAsync().Result;
+                            if (!changeConnectionHandlerResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+                            TS3_CLIENT.WriteLine($"clientupdate client_away={status}");
+                            var changeAwayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!changeAwayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+                        }
+                    }else {
+                            TS3_CLIENT.WriteLine($"clientupdate client_away={status}");
+                            var changeAwayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!changeAwayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                            }
+                    }
+
+                    if(run_succesfull)
+                        return true;
+                    retries++;
+                }
+
+                return false;
+            }
+        }
+
+        public static bool SetGlobalAwayMessage(string statusMessage)
+        {
+            lock (ro_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!TS3_CLIENT.IsConnected) return false;
+
+                if (!string.IsNullOrWhiteSpace(statusMessage))
+                    statusMessage = statusMessage.FixTs3SpecificChars();
+
+                var retries = 0;
+                while (retries < 10)
+                {
+                    bool run_succesfull = true;
+                    TS3_CLIENT.WriteLine($"serverconnectionhandlerlist");
+                    var connectionHanderList = TS3_CLIENT.ReadAsync().Result.Split('\n')[0];
+
+                    if(connectionHanderList.Contains('|')) {
+                        foreach (var connectionHander in connectionHanderList.Split('|'))
+                        {
+                            TS3_CLIENT.WriteLine($"use {connectionHandler}");
+                            var changeConnectionHandlerResponse = TS3_CLIENT.ReadAsync().Result;
+                            if (!changeConnectionHandlerResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+                            TS3_CLIENT.WriteLine($"client_away_message client_away_message={statusMessage}");
+                            var changeAwayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!changeAwayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+                        }
+                    }else {
+                            TS3_CLIENT.WriteLine($"client_away_message client_away_message={statusMessage}");
+                            var changeAwayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!changeAwayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                            }
+                    }
+
+                    if(run_succesfull)
+                        return true;
+                    retries++;
+                }
+
+                return false;
+            }
+        }
+
+        public static int GetGlobalAwayStatus(int clientId)
+        {
+            lock (ro_TS3_CLIENT_LOCK_OBJ)
+            {
+                if (!TS3_CLIENT.IsConnected) return -1;
+
+                var retries = 0;
+                while (retries < 10)
+                {
+                    bool run_succesfull = true;
+                    TS3_CLIENT.WriteLine($"serverconnectionhandlerlist");
+                    var connectionHanderList = TS3_CLIENT.ReadAsync().Result.Split('\n')[0];
+
+                    if(connectionHanderList.Contains('|')) {
+                        foreach (var connectionHander in connectionHanderList.Split('|'))
+                        {
+                            TS3_CLIENT.WriteLine($"use {connectionHandler}");
+                            var changeConnectionHandlerResponse = TS3_CLIENT.ReadAsync().Result;
+                            if (!changeConnectionHandlerResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+                            TS3_CLIENT.WriteLine($"clientvariable clid={clientId} client_away");
+                            var awayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!awayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                                break;
+                            }
+
+                            var status = int.Parse(
+                                awayStatusResponse.Split(new[] { "client_away=" }, StringSplitOptions.None)[1]
+                                    .Split('\n')[0]
+                                    .Trim());
+                            
+                            if(status == 0){
+                                return status;
+                            }
+                        }
+                    }else {
+                            TS3_CLIENT.WriteLine($"clientvariable clid={clientId} client_away");
+                            var awayStatusResponse = TS3_CLIENT.ReadAsync().Result;
+
+                            if (!awayStatusResponse.Contains("msg=ok")) {
+                                run_succesfull = false;
+                            }else {
+                                var status = int.Parse(
+                                    awayStatusResponse.Split(new[] { "client_away=" }, StringSplitOptions.None)[1]
+                                        .Split('\n')[0]
+                                        .Trim());
+                                
+                                return status;
+                            }
+                    }
+
+                    if(run_succesfull)
+                        return 1;
+                    retries++;
+                }
+
+                return -1;
+            }
+        }
+
         public static int GetAwayStatus(int clientId)
         {
             lock (ro_TS3_CLIENT_LOCK_OBJ)
