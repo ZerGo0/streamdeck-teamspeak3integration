@@ -9,6 +9,10 @@ installed in your TeamSpeak 3 Client in order to use this plugin.
 
 ## Changelog
 
+[v1.8](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.8):
+
+- Updated Newtonsoft.Json version to 13.0.1
+
 [v1.7](https://github.com/ZerGo0/streamdeck-teamspeak3integration/releases/tag/v1.7):
 
 - Added support for Channel Ids to the `Channel Switch` Action
